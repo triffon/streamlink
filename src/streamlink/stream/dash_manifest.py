@@ -337,6 +337,7 @@ class Initialization(MPDNode):
     def __init__(self, node, root=None, parent=None, *args, **kwargs):
         super().__init__(node, root, parent, *args, **kwargs)
         self.source_url = self.attr("sourceURL")
+        self.range = self.attr("range", parser=MPDParsers.range)
 
 
 class SegmentURL(MPDNode):
@@ -370,11 +371,13 @@ class SegmentList(MPDNode):
     @property
     def segments(self):
         if self.initialization:
-            yield Segment(self.make_url(self.initialization.source_url), 0, init=True, content=False)
+            yield Segment(self.make_url(self.initialization.source_url), 0, init=True, content=False, range=self.initialization.range)
         for n, segment_url in enumerate(self.segment_urls, self.start_number):
             yield Segment(self.make_url(segment_url.media), self.duration_seconds, range=segment_url.media_range)
 
     def make_url(self, url):
+        if url is None:
+            return self.base_url
         return BaseURL.join(self.base_url, url)
 
 
